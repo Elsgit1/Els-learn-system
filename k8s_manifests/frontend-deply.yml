@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deply
+  namespace: dev
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      layer: frontend
+      app: learn-app
+  template:
+    metadata:
+      name: learn-app-pod
+      labels:
+        layer: frontend
+        app: learn-app
+    spec:
+      containers:
+      - name: learn-app-cont
+        image: ${{ env.IMAGE_NAME }}
+        ports:
+        - name: web
+          containerPort: 80
+          protocol: TCP
+        resources:
+          requests:
+            memory: "200Mi"
+            cpu: "2"
+          limits:
+            memory: "270Mi"
+            cpu: "2"
