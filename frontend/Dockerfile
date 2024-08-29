@@ -9,13 +9,11 @@ WORKDIR /usr/local/app
 # Copy the package.json and package-lock.json files first (for better caching)
 COPY package*.json ./
 
-#Disable intergrity checks for now
-RUN npm config set strict-ssl false
-RUN npm config set registry https://registry.npmjs.org/
-RUN npm config set integrity false
+# Install Angular CLI globally
+RUN npm install -g @angular/cli
 
 # Install all the dependencies
-RUN npm install 
+RUN npm install -g npm@10.8.3
 
 # Add the source code to app
 COPY ./ /usr/local/app/
