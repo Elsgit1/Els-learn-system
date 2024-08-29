@@ -15,6 +15,9 @@ RUN npm cache clean --force
 # Install all the dependencies
 RUN npm install -g npm@10.8.3
 
+# Install Angular CLI globally
+RUN npm install -g @angular/cli
+
 # Generate the build of the application
 RUN npm run build
 
