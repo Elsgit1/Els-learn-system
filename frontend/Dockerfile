@@ -13,7 +13,7 @@ COPY ./ /usr/local/app/
 RUN npm cache clean --force
 
 # Install all the dependencies
-RUN npm install
+RUN npm install -g npm@10.8.3
 
 # Generate the build of the application
 RUN npm run build
