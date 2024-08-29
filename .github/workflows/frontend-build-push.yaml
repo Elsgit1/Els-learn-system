@@ -18,7 +18,7 @@ jobs:
     build-and-push:
       runs-on: ubuntu-latest
       permissions:
-            contents: write
+            contents: read
             packages: write
 
       steps:
@@ -27,6 +27,17 @@ jobs:
         with:
           fetch-depth: 0 # Necessary to fetch all tags and history
   
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Compile Java code
+        run: |
+          cd frontend
+          mvn clean compile
+
   ################################################################
   ###               SONAR CLOUD SCAN                           ###
   ### Drops the build if any bugs or vulnerabilities are found.###
@@ -42,6 +53,7 @@ jobs:
             -Dsonar.organization=elsgit1
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.java.binaries=frontend/target/classes
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

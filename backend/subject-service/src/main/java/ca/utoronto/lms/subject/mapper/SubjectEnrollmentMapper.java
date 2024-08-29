@@ -17,6 +17,14 @@ public interface SubjectEnrollmentMapper
     SubjectEnrollmentDTO toDTO(SubjectEnrollment subjectEnrollment);
 
     @Mapping(source = "student.id", target = "studentId")
+    // @Mapping(source = "assistantId", target = "assistant")
+    // @Mapping(source = "professorId", target = "professor")
+    // @Mapping(source = "studyProgramId", target = "studyProgram")
+    // @Mapping(source = "subjectEnrollments", target = "subjectEnrollments")
+    // @Mapping(source = "subjectMaterials", target = "subjectMaterials")
+    // @Mapping(source = "subjectNotifications", target = "subjectNotifications")
+    // @Mapping(source = "subjectTerms", target = "subjectTerms")
+    // @Mapping(source = "deleted", target = "deleted")
     SubjectEnrollment toModel(SubjectEnrollmentDTO subjectEnrollmentDTO);
 
     StudentDTO studentDTOFromId(Long id);
