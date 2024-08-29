@@ -13,13 +13,13 @@ COPY package*.json ./
 RUN npm install -g @angular/cli
 
 # Install all the dependencies
-RUN npm install -g npm@10.8.3
+RUN npm install
 
 # Add the source code to app
 COPY ./ /usr/local/app/
 
 # Generate the build of the application
-RUN npm run build --prod
+RUN npm run build --configuration production
 
 
 # Stage 2: Serve app with nginx server
