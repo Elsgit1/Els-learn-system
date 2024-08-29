@@ -1,10 +1,12 @@
-name: Code analysis and security scan.
+name: Code analysis and security scan for frontend.
 
 on:
   pull_request: 
     branches: ["main"]
+    paths:
+      - 'frontend/**'
 
-  workflow_dispatch:
+  workflow_dispatch:    
 
 jobs:
     code-scans:
