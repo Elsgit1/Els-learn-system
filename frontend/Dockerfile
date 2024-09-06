@@ -1,6 +1,4 @@
 # Stage 1: Compile and Build angular codebase
-
-# Use official node image as the base image
 FROM node:20.5.0-alpine3.20 AS build
 
 # Set the working directory
