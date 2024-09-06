@@ -13,7 +13,7 @@ env:
   REGISTRY: Amazon-ecr
 
 jobs:
-    code-scans:
+    subject-service-code-scans:
       runs-on: ubuntu-latest
       permissions:
         contents: write
@@ -87,7 +87,7 @@ jobs:
           ECR_REPOSITORY: ${{ env.REPOSITORY }}
           IMAGE_TAG: ${{ steps.next_version.outputs.tag }}
         run: |
-          docker build -t $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f src/frontend/Dockerfile src/frontend
+          docker build -t $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f backend/subject-service/Dockerfile backend/subject-service
           echo "IMAGE_NAME=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
           echo "::set-output name=name::$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
