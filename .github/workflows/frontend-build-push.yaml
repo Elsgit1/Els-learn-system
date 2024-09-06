@@ -146,9 +146,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
            image: ${{ steps.build-image.outputs.name }}
-           args: | 
-             --severity-threshold=high --policy-path=.snyk
-             --file=frontend/Dockerfile
+           args: --severity-threshold=high --policy-path=.snyk
         continue-on-error: true
       
 
@@ -159,7 +157,6 @@ jobs:
             -Dsonar.projectKey=Elsgit1_Els-learning-management-system
             -Dsonar.organization=elsgit1
             -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.projectBaseDir=frontend
             -Dsonar.sources=frontend/src
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
