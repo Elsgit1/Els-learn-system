@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: faculty-deply
+  namespace: dev
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      layer: faculty
+      app: learn-app
+  template:
+    metadata:
+      name: faculty-pod
+      labels:
+        layer: faculty
+        app: learn-app
+    spec:
+      containers:
+      - name: faculty-cont
+        image: ${{ env.IMAGE_NAME }}
+        imagePullPolicy: Always
+        ports:
+        - name: web
+          containerPort: 80
+          protocol: TCP
+        resources:
+          requests:
+            memory: "200Mi"
+            cpu: "2"
+          limits:
+            memory: "270Mi"
+            cpu: "2"

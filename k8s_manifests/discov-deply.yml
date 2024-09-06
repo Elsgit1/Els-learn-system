@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discovery-deply
+  namespace: dev
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      layer: discovery
+      app: learn-app
+  template:
+    metadata:
+      name: discovery-pod
+      labels:
+        layer: discovery
+        app: learn-app
+    spec:
+      containers:
+      - name: discovery-cont
+        image: ${{ env.IMAGE_NAME }}
+        imagePullPolicy: Always
+        ports:
+        - name: web
+          containerPort: 8080
+          protocol: TCP
+        resources:
+          requests:
+            memory: "200Mi"
+            cpu: "2"
+          limits:
+            memory: "270Mi"
+            cpu: "2"
