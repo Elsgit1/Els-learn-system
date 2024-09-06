@@ -13,7 +13,7 @@ env:
   REGISTRY: Amazon-ECR
 
 jobs:
-    code-scans:
+    frontend-code-scans:
       runs-on: ubuntu-latest
       permissions:
         contents: read
@@ -31,10 +31,15 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Clear npm cache
+        run: npm cache clean --force
+
       # Install Angular Dependencies
       - name: Install Angular Dependencies
         working-directory: frontend
-        run: npm install
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install
 
       # Build Angular Frontend
       - name: Build Angular Frontend
