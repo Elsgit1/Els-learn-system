@@ -18,10 +18,11 @@ spec:
     spec:
       containers:
       - name: subject-cont
+        imagePullPolicy: Always
         image: 339713063356.dkr.ecr.us-west-1.amazonaws.com/learn-subject:v1.0.2
         ports:
         - name: web
-          containerPort: 80
+          containerPort: 8080
           protocol: TCP
         resources:
           requests:
