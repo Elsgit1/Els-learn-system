@@ -101,9 +101,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
            image: ${{ steps.build-image.outputs.name }}
-           args: | 
-             --severity-threshold=high --policy-path=.snyk
-             --file=backend/subject-service/Dockerfile
+           args: --severity-threshold=high --policy-path=.snyk
         continue-on-error: true
 
       - name: SonarCloud Scan
