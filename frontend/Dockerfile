@@ -1,26 +1,22 @@
 # Stage 1: Compile and Build angular codebase
-FROM node:20.5.0-alpine3.20 AS build
+
+# Use official node image as the base image
+FROM node:20.5.0-alpine3.20 as build
 
 # Set the working directory
 WORKDIR /usr/local/app
 
-# Copy the package.json and package-lock.json files first (for better caching)
-COPY package*.json ./
+# Add the source code to app
+COPY ./ /usr/local/app/
 
 # Clean npm cache
 RUN npm cache clean --force
 
-# Install Angular CLI globally
-RUN npm install -g @angular/cli
-
 # Install all the dependencies
 RUN npm install
 
-# Add the source code to app
-COPY ./ /usr/local/app/
-
 # Generate the build of the application
-RUN npm run build --configuration production
+RUN npm run build
 
 
 # Stage 2: Serve app with nginx server
@@ -36,6 +32,3 @@ COPY --from=build /usr/local/app/dist/utoronto /usr/share/nginx/html
 
 # Expose port 80
 EXPOSE 80
-
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
