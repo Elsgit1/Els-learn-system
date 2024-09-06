@@ -1,19 +1,19 @@
-name: subject-service code analysis and security scan.
+name: faculty-service code analysis and security scan.
 
 on:
   pull_request: 
     branches: ["main"]
     paths:
-      - 'backend/subject-service/**'
+      - 'backend/faculty-service/**'
 
   workflow_dispatch:    
 env:
   AWS_REGION: us-west-1
-  REPOSITORY: learn-subject
+  REPOSITORY: learn-faculty
   REGISTRY: Amazon-ecr
 
 jobs:
-    subject-service-code-scans:
+    faculty-service-code-scans:
       runs-on: ubuntu-latest
       permissions:
         contents: write
@@ -40,7 +40,7 @@ jobs:
             ${{ runner.os }}-m2
   
       - name: Build Java Backend with Maven
-        working-directory: backend/subject-service
+        working-directory: backend/faculty-service
         run: mvn clean package --file pom.xml
 
   
@@ -87,7 +87,7 @@ jobs:
           ECR_REPOSITORY: ${{ env.REPOSITORY }}
           IMAGE_TAG: ${{ steps.next_version.outputs.tag }}
         run: |
-          docker build -t $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f backend/subject-service/Dockerfile backend/subject-service
+          docker build -t $REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f backend/faculty-service/Dockerfile backend/faculty-service
           echo "IMAGE_NAME=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
           echo "::set-output name=name::$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
@@ -111,8 +111,8 @@ jobs:
             -Dsonar.projectKey=Elsgit1_Els-boutique
             -Dsonar.organization=elsgit1
             -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.sources=backend/subject-service/src
-            -Dsonar.java.binaries=backend/subject-service/target
+            -Dsonar.sources=backend/faculty-service/src
+            -Dsonar.java.binaries=backend/faculty-service/target
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

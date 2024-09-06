@@ -1,0 +1,207 @@
+name: faculty-service containerize and push to ECR.
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - 'backend/faculty-service/**'
+
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-west-1
+  REPOSITORY: learn-faculty
+ 
+
+jobs:
+    faculty-service-build-test-and-push:
+      runs-on: ubuntu-latest
+      permissions:
+            contents: write
+            packages: write
+
+      steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Necessary to fetch all tags and history
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+  
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2
+  
+      - name: Build Java Backend with Maven
+        working-directory: backend/faculty-service
+        run: mvn clean package --file pom.xml
+
+  
+  
+      - name: Setup Git
+        run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+  
+  ################################################################
+  ###               DETERMINE NEXT VERSION                     ###
+  ###   Used for creating new releases and image tags          ###
+  ################################################################
+  
+      - name: Determine Next Version
+        id: next_version
+        run: |
+          # Fetch all tags
+          git fetch --tags
+          
+          # Get the latest tag, assume semver, and sort.
+          LATEST_TAG=$(git tag -l | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)
+          
+          # If there's no tag yet, start with v1.0.0.
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG="v1.0.0"
+          fi
+          
+          # Increment the patch version
+          NEXT_TAG=$(echo $LATEST_TAG | awk -F. '{print $1"."$2"."$3+1}')
+          
+          # Output the next version
+          echo "::set-output name=tag::$NEXT_TAG"
+          echo "Next version: $NEXT_TAG"
+  
+  ################################################################
+  ###                     CREATE RELEASE                       ###
+  ###  Creating release with the tag from the previous step    ###
+  ################################################################
+  
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        with:
+          tag_name: ${{ steps.next_version.outputs.tag }}
+          release_name: learn-faculty ${{ steps.next_version.outputs.tag }}
+          draft: false
+          prerelease: false
+  
+      # - name: Publish package to GitHub Packages
+      #   id: github_packages
+      #   run: mvn deploy
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      #   working-directory: backend/subject-service
+
+
+  ################################################################
+  ###                  BUILD DOCKER IMAGE                      ###
+  ###         Build Docker image from the Dockefile            ###
+  ################################################################
+  
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+  
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+  
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build Docker image
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.REPOSITORY }}
+          IMAGE_TAG: ${{ steps.next_version.outputs.tag }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f backend/faculty-service/Dockerfile backend/faculty-service
+          echo "IMAGE_NAME=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
+          echo "::set-output name=name::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+  
+  ###########################################################
+  ###  Docker image Snyk scan & sonarcloud analysis       ###
+  ###########################################################               
+                 
+      - name: Run Snyk to check Docker image for vulnerabilities
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+           image: ${{ steps.build-image.outputs.name }}
+           args: --severity-threshold=high --policy-path=.snyk
+        continue-on-error: true
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        with:
+          args: >
+            -Dsonar.projectKey=Els-learning-management-system
+            -Dsonar.organization=elsgit1
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.sources=backend/faculty-service/src
+            -Dsonar.java.binaries=backend/faculty-service/target
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          
+  
+  ###########################################################
+  ###           Push image to ECR & dockerhub             ###
+  ########################################################### 
+  
+      - name: Push image to ECR & DockerHub repos
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.REPOSITORY }}
+          IMAGE_TAG: ${{ steps.next_version.outputs.tag }}
+          APP_NAME: learn-faculty
+          DOCKERHUB_USERNAME: elsdokr
+        run: |
+          
+          #Tag and push to ECR
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$APP_NAME:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$APP_NAME:$IMAGE_TAG
+
+          #Tag and push to DockerHub
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $DOCKERHUB_USERNAME/$APP_NAME:$IMAGE_TAG
+          docker push $DOCKERHUB_USERNAME/$APP_NAME:$IMAGE_TAG
+
+  ###########################################################
+  ###        Update image name and tag in manifest        ###
+  ###########################################################         
+
+      - name: Update Manifest
+        env:
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ env.REPOSITORY }}
+          IMAGE_TAG: ${{ steps.next_version.outputs.tag }}
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        run: |
+          sed -i 's|image: .*|image: '"$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"'|g' k8s_manifests/faculty-deply.yml
+          echo "Updated deployment with new image tag: $IMAGE_TAG"
+
+      - name: Commit and push changes
+        run: |
+          git add k8s_manifests/faculty-deply.yml
+          git commit -m "Updated deployment with new image tag: ${{ steps.next_version.outputs.tag }}"
+          git push origin main
+          
+
