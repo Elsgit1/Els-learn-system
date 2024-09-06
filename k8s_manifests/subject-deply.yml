@@ -18,8 +18,8 @@ spec:
     spec:
       containers:
       - name: subject-cont
-        image: ${{ env.IMAGE_NAME }}
         imagePullPolicy: Always
+        image: 339713063356.dkr.ecr.us-west-1.amazonaws.com/learn-subject:v1.0.2
         ports:
         - name: web
           containerPort: 8080
