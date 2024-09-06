@@ -90,7 +90,7 @@ jobs:
           prerelease: false
   
   ###########################################################
-  ###      Log into repos and build docker image          ###
+  ####      Log into repos and build docker image       #####
   ###########################################################
 
       # - name: Extract repository name
