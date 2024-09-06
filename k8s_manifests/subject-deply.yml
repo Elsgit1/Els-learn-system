@@ -19,6 +19,7 @@ spec:
       containers:
       - name: subject-cont
         image: ${{ env.IMAGE_NAME }}
+        imagePullPolicy: Always
         ports:
         - name: web
           containerPort: 80
