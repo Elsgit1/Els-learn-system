@@ -134,6 +134,7 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f frontend/Dockerfile frontend 
           echo "IMAGE_NAME=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
+          echo "::set-output name=name::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
   
   ##################################################################
   ###  Snyk & SonarCloud image scans | If fails, drop the action ###
@@ -160,7 +161,6 @@ jobs:
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.projectBaseDir=frontend
             -Dsonar.sources=frontend/src
-            # -Dsonar.tests=frontend/src
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
