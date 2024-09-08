@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: faculty-cont
-        image: ${{ env.IMAGE_NAME }}
+        image: 339713063356.dkr.ecr.us-west-1.amazonaws.com/learn-faculty:v1.0.1
         imagePullPolicy: Always
         ports:
         - name: web
