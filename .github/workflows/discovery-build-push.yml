@@ -1,10 +1,10 @@
-name: discovery-service containerize and push to ECR.
+name: discovery-server containerize and push to ECR.
 
 on:
   push:
     branches: ["main"]
     paths:
-      - 'backend/discovery-service/**'
+      - 'backend/discovery-server/**'
 
   workflow_dispatch:
 
@@ -14,7 +14,7 @@ env:
  
 
 jobs:
-    discovery-service-build-test-and-push:
+    discovery-server-build-test-and-push:
       runs-on: ubuntu-latest
       permissions:
             contents: write
@@ -41,7 +41,7 @@ jobs:
             ${{ runner.os }}-m2
   
       - name: Build Java Backend with Maven
-        working-directory: backend/discovery-service
+        working-directory: backend/discovery-server
         run: mvn clean package --file pom.xml
 
   
@@ -131,7 +131,7 @@ jobs:
           ECR_REPOSITORY: ${{ env.REPOSITORY }}
           IMAGE_TAG: ${{ steps.next_version.outputs.tag }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f backend/discovery-service/Dockerfile backend/discovery-service
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f backend/discovery-server/Dockerfile backend/discovery-server
           echo "IMAGE_NAME=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
           echo "::set-output name=name::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
   
@@ -155,8 +155,8 @@ jobs:
             -Dsonar.projectKey=Els-learning-management-system
             -Dsonar.organization=elsgit1
             -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.sources=backend/discovery-service/src
-            -Dsonar.java.binaries=backend/discovery-service/target
+            -Dsonar.sources=backend/discovery-server/src
+            -Dsonar.java.binaries=backend/discovery-server/target
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
